@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Sheet — Music Industry CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8F2; --paper-dim:#F1EEE3; --card:#FFFFFF;
+    --ink:#1B1B1F; --ink-soft:#4C4C53; --ink-faint:#8B8B8F;
+    --line:#DCD6C6; --line-strong:#1B1B1F;
+    --brass:#AD7F1F; --brass-soft:#F0E3C2;
+    --venue-red:#A13A2E; --venue-red-soft:#F4DBD5;
+    --teal:#2E6264; --teal-soft:#DCEAE9;
+    --moss:#456B34; --moss-soft:#E2EEDA;
+    --grey-soft:#E9E6DC;
+    --shadow: 0 12px 30px -12px rgba(27,27,31,0.28);
+    --radius-sm: 4px; --radius-md: 8px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', system-ui, sans-serif;
+    min-height:100vh; opacity:0; animation: settle 0.45s ease-out forwards;
+  }
+  @media (prefers-reduced-motion: reduce){ body{ animation:none; opacity:1; } *{ transition:none !important; animation-duration:0.001ms !important; } }
+  @keyframes settle{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+
+  a{ color:inherit; }
+  button{ font-family:inherit; cursor:pointer; }
+  input,select,textarea{ font-family:inherit; font-size:14px; color:var(--ink); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, [tabindex]:focus-visible{ outline:2px solid var(--brass); outline-offset:2px; }
+  ::placeholder{ color:var(--ink-faint); }
+
+  .wrap{ max-width:1160px; margin:0 auto; padding:28px 20px 80px; }
+
+  .masthead{ border-bottom:2px solid var(--line-strong); padding-bottom:16px; margin-bottom:16px; }
+  .masthead-top{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .masthead-top h1{ font-family:'Bebas Neue', 'IBM Plex Sans', sans-serif; font-size:52px; line-height:0.9; letter-spacing:0.5px; margin:0; }
+  .masthead-date{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink-soft); white-space:nowrap; }
+  .masthead-sub{ margin:6px 0 0; color:var(--ink-soft); font-size:15px; max-width:56ch; }
+  .ledger{ display:flex; gap:28px; flex-wrap:wrap; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+  .ledger-item{ display:flex; flex-direction:column; gap:2px; }
+  .ledger-num{ font-family:'IBM Plex Mono', monospace; font-size:22px; font-weight:600; }
+  .ledger-num.warn{ color:var(--venue-red); }
+  .ledger-label{ font-size:12.5px; color:var(--ink-soft); }
+  .export-link{ margin-left:auto; align-self:center; font-size:13px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px; background:none; border:none; padding:0; }
+  .export-link:hover{ color:var(--ink); }
+
+  .mode-switch{ display:flex; gap:8px; margin:18px 0 16px; }
+  .mode-btn{ flex:1; text-align:center; padding:11px 16px; border:1px solid var(--line); background:var(--card); border-radius:var(--radius-md); font-weight:600; font-size:14px; color:var(--ink-soft); }
+  .mode-btn.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .mode-btn:not(.active):hover{ border-color:var(--ink-soft); color:var(--ink); }
+
+  .tabs-row{ display:flex; align-items:stretch; gap:8px; }
+  .tabs{ display:flex; gap:4px; overflow-x:auto; padding-bottom:2px; flex:1; scrollbar-width:thin; }
+  .tab{ flex:0 0 auto; background:var(--card); border:1px solid var(--line); border-bottom:3px solid var(--line); padding:9px 14px; font-size:13.5px; font-weight:500; border-radius:var(--radius-sm) var(--radius-sm) 0 0; display:flex; align-items:center; gap:7px; white-space:nowrap; }
+  .tab .count{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-faint); background:var(--paper-dim); padding:1px 6px; border-radius:10px; }
+  .tab[aria-selected="true"]{ background:var(--ink); color:var(--paper); border-color:var(--ink); border-bottom-color:var(--brass); }
+  .tab[aria-selected="true"] .count{ background:rgba(250,248,242,0.15); color:var(--paper); }
+  .tab-manage{ flex:0 0 auto; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 12px; font-size:13px; color:var(--ink-soft); }
+  .tab-manage:hover{ color:var(--ink); border-color:var(--ink-soft); }
+  .category-desc{ font-size:13px; color:var(--ink-soft); margin:8px 0 14px; max-width:74ch; }
+
+  .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .search-box{ flex:1 1 220px; }
+  .search-box input{ width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card); }
+  .filter-select{ padding:9px 10px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--card); font-size:13.5px; max-width:180px; }
+  .btn{ border-radius:var(--radius-sm); padding:9px 16px; font-size:13.5px; font-weight:600; border:1px solid transparent; }
+  .btn-primary{ background:var(--ink); color:var(--paper); }
+  .btn-primary:hover{ background:#000; }
+  .btn-secondary{ background:var(--card); color:var(--ink); border-color:var(--line); }
+  .btn-secondary:hover{ border-color:var(--ink-soft); }
+  .btn-danger{ background:none; color:var(--venue-red); border:none; text-decoration:underline; text-underline-offset:3px; padding:6px 0; font-weight:500;}
+
+  .table-wrap{ border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; background:var(--card); overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:820px; }
+  thead th{ text-align:left; font-weight:600; font-size:13px; color:var(--ink-soft); padding:11px 14px; border-bottom:2px solid var(--line-strong); background:var(--paper-dim); }
+  tbody td{ padding:11px 14px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
+  tbody tr{ cursor:pointer; }
+  tbody tr:hover{ background:var(--brass-soft); }
+  tbody tr:last-child td{ border-bottom:none; }
+  .col-star{ width:34px; }
+  .star-btn{ background:none; border:none; font-size:17px; color:var(--line-strong); opacity:0.35; padding:2px; line-height:1; }
+  .star-btn.active{ color:var(--brass); opacity:1; }
+  .name-cell .name{ font-weight:600; }
+  .name-cell .company{ color:var(--ink-soft); font-size:12.5px; margin-top:1px; }
+  .role-cell{ cursor:pointer; max-width:230px; }
+  .role-tag{ display:inline-block; background:var(--paper-dim); color:var(--ink-soft); font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:12px; margin:2px 4px 2px 0; }
+  .role-cell-empty{ color:var(--ink-faint); font-size:12px; border:1px dashed var(--line); border-radius:12px; padding:3px 9px; }
+  .pill-select{ appearance:none; -webkit-appearance:none; border:none; border-radius:20px; padding:5px 26px 5px 10px; font-size:12.5px; font-weight:600; cursor:pointer; background-repeat:no-repeat; background-position:right 8px center; background-size:9px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234C4C53'/%3E%3C/svg%3E"); }
+  .status-scouted{ background:var(--grey-soft); color:var(--ink-soft); }
+  .status-reached-out{ background:var(--brass-soft); color:#7A5A16; }
+  .status-in-conversation{ background:var(--teal-soft); color:var(--teal); }
+  .status-meeting-booked{ background:var(--venue-red-soft); color:var(--venue-red); }
+  .status-collaborating{ background:var(--moss-soft); color:var(--moss); }
+  .status-dormant{ background:var(--paper-dim); color:var(--ink-faint); }
+  .status-not-reviewed{ background:var(--grey-soft); color:var(--ink-soft); }
+  .status-worth-pursuing{ background:var(--brass-soft); color:#7A5A16; }
+  .status-contacted{ background:var(--teal-soft); color:var(--teal); }
+  .status-featured-secured{ background:var(--moss-soft); color:var(--moss); }
+  .status-not-a-fit{ background:var(--paper-dim); color:var(--ink-faint); }
+  .followup{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-soft); }
+  .followup.due{ color:var(--venue-red); font-weight:600; }
+  .auto-tag{ font-size:9.5px; color:var(--ink-faint); border:1px solid var(--line); border-radius:8px; padding:0 5px; margin-left:4px; vertical-align:1px; font-family:'IBM Plex Sans', sans-serif; }
+  .platform-link{ color:var(--brass); text-decoration:underline; text-underline-offset:2px; font-size:12.5px; font-weight:600; }
+
+  .empty-state{ padding:56px 20px; text-align:center; }
+  .empty-state p{ color:var(--ink-soft); margin:0 0 14px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(27,27,31,0.35); opacity:0; pointer-events:none; transition:opacity 0.2s ease; z-index:40; }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .panel{ position:fixed; top:0; right:0; height:100%; width:min(480px, 100%); background:var(--paper); border-left:1px solid var(--line); box-shadow:var(--shadow); transform:translateX(100%); transition:transform 0.25s ease; z-index:41; display:flex; flex-direction:column; }
+  .panel.show{ transform:translateX(0); }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); background:var(--card); }
+  .panel-head h2{ font-family:'Bebas Neue', sans-serif; font-size:26px; margin:0; letter-spacing:0.3px; }
+  .panel-close{ background:none; border:none; font-size:20px; color:var(--ink-soft); padding:4px 8px; }
+  .panel-close:hover{ color:var(--ink); }
+  .panel-body{ padding:18px 20px 100px; overflow-y:auto; flex:1; }
+  .field-row{ display:flex; gap:10px; margin-bottom:12px; }
+  .field{ flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .field label{ font-size:12px; color:var(--ink-soft); font-weight:600; }
+  .field input, .field select, .field textarea{ border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 10px; background:var(--card); width:100%; }
+  .field textarea{ resize:vertical; min-height:70px; line-height:1.45; }
+  .field-hint{ font-size:11.5px; color:var(--ink-faint); margin-top:1px; }
+  .priority-toggle{ display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 10px; background:var(--card); cursor:pointer; font-size:13.5px; color:var(--ink-soft); }
+  .priority-toggle .star-btn{ font-size:16px; }
+  .section-title{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin:22px 0 10px; padding-top:14px; border-top:1px solid var(--line); }
+  .section-title:first-of-type{ border-top:none; padding-top:0; margin-top:4px; }
+
+  .role-check-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:5px 10px; max-height:230px; overflow-y:auto; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px; background:var(--card); }
+  .role-check-row{ display:flex; align-items:center; gap:6px; font-size:12.8px; }
+  .role-check-row input{ width:auto; margin:0; }
+  .tag-add-row{ grid-column: 1 / -1; display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+  .tag-add-row input{ flex:1; border:1px solid var(--line); border-radius:4px; padding:6px 8px; font-size:12.5px; }
+  .tag-add-row .btn{ padding:6px 10px; font-size:12.5px; }
+
+  .history-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+  .history-item{ border-left:2px solid var(--brass); padding:2px 0 2px 12px; }
+  .history-date{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-faint); }
+  .history-text{ font-size:13.5px; margin-top:2px; line-height:1.4; }
+  .history-empty{ color:var(--ink-faint); font-size:13px; }
+  .history-add{ display:flex; gap:8px; align-items:flex-end; }
+  .history-add .field{ flex:1; }
+  .history-add input[type="date"]{ max-width:135px; }
+
+  .panel-actions{ position:sticky; bottom:0; background:var(--paper); border-top:1px solid var(--line); padding:14px 20px; display:flex; gap:10px; align-items:center; }
+  .panel-footer-meta{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-faint); margin-top:18px; }
+  .delete-zone{ margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .confirm-text{ font-size:13px; color:var(--venue-red); }
+
+  .popover{ position:absolute; top:calc(100% + 6px); right:20px; width:290px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px; z-index:35; display:none; max-height:70vh; overflow-y:auto; }
+  .popover.show{ display:block; }
+  .popover h3{ font-size:13px; margin:0 0 10px; }
+  .cat-block{ padding:7px 0; border-bottom:1px solid var(--line); }
+  .cat-block:last-child{ border-bottom:none; }
+  .cat-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .cat-name{ font-weight:600; font-size:13.5px; }
+  .cat-remove{ background:none; border:none; color:var(--ink-faint); font-size:15px; padding:2px 6px; flex:0 0 auto; }
+  .cat-remove:hover{ color:var(--venue-red); }
+  .cat-desc-input{ width:100%; margin-top:5px; border:1px solid var(--line); border-radius:4px; padding:6px 8px; font-size:12px; font-family:inherit; resize:vertical; }
+  .cat-add{ display:flex; gap:6px; margin-top:10px; }
+  .cat-add input{ flex:1; border:1px solid var(--line); border-radius:var(--radius-sm); padding:7px 8px; font-size:13px; }
+  #newCategoryDesc{ width:100%; margin-top:6px; border:1px solid var(--line); border-radius:4px; padding:7px 8px; font-size:12.5px; font-family:inherit; resize:vertical; }
+  #tagPopover{ width:280px; max-height:320px; }
+  #tagPopover .role-check-grid{ max-height:none; border:none; padding:0; }
+
+  .save-banner{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); font-size:13px; padding:9px 16px; border-radius:20px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity 0.2s ease; z-index:50; }
+  .save-banner.show{ opacity:1; }
+  .save-banner.error{ background:var(--venue-red); }
+
+  .relative-wrap{ position:relative; }
+
+  @media (max-width: 640px){
+    .masthead-top h1{ font-size:40px; }
+    .ledger{ gap:18px; }
+    .panel{ width:100%; }
+    .popover{ right:20px; left:20px; width:auto; }
+    .role-check-grid{ grid-template-columns:1fr; }
+    .mode-switch{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-top">
+      <h1>Contact Sheet</h1>
+      <div class="masthead-date" id="todayDate"></div>
+    </div>
+    <p class="masthead-sub">Outreach &amp; relationship tracker for marketing, content, events and PR across the music industry.</p>
+    <div class="ledger" id="ledger"></div>
+  </header>
+
+  <div class="mode-switch" id="modeSwitch">
+    <button class="mode-btn" data-mode="contacts" type="button">Contacts</button>
+    <button class="mode-btn" data-mode="platforms" type="button">Platforms &amp; Media</button>
+  </div>
+
+  <div class="relative-wrap">
+    <div class="tabs-row">
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <button class="tab-manage" id="manageBtn" type="button">Edit categories</button>
+    </div>
+    <p class="category-desc" id="categoryDesc"></p>
+    <div class="popover" id="categoryPopover">
+      <h3 id="categoryPopoverTitle">Categories</h3>
+      <div id="categoryList"></div>
+      <div class="cat-add">
+        <input type="text" id="newCategoryInput" placeholder="New category name">
+      </div>
+      <textarea id="newCategoryDesc" placeholder="Short description of what belongs here" rows="2"></textarea>
+      <button class="btn btn-secondary" id="addCategoryBtn" type="button" style="margin-top:8px;width:100%;">Add category</button>
+    </div>
+  </div>
+
+  <div class="toolbar" id="toolbar"></div>
+
+  <div class="table-wrap" id="tableWrap"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="panel" id="panel" aria-hidden="true"></aside>
+<div class="popover" id="tagPopover">
+  <h3 id="tagPopoverTitle">Positions / roles</h3>
+  <div class="role-check-grid" id="tagChecklist"></div>
+</div>
+<div class="save-banner" id="saveBanner"></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'contact-sheet-data';
+
+  const CONTACT_CATEGORIES_DEFAULT = [
+    {name:'Producers & Songwriters', description:'Music producers, songwriters, composers and beatmakers who create and shape recordings.'},
+    {name:'Session Musicians', description:'Performers hired for recording sessions or live sets — session players, backing vocalists and multi-instrumentalists.'},
+    {name:'Studios & Engineers', description:'Recording, mixing and mastering studios, and the engineers and technical staff who run them.'},
+    {name:'Live Industry', description:'Touring and live events: promoters, booking agents, tour managers, talent buyers, festival programmers and venue staff.'},
+    {name:'Business & Management', description:'The commercial and legal side: artist managers, label executives, business affairs, royalties and publishing administration.'},
+    {name:'Creative Industry', description:'Visual and content creatives: graphic designers, photographers, videographers, and artwork or branding specialists.'},
+    {name:'Film, TV & Sync', description:'Sync licensing and placement: music supervisors, sync agents, and contacts at ad agencies, film and TV productions.'},
+    {name:'Marketing & PR', description:'Marketing agencies, publicists and press officers handling promotion and media outreach.'},
+    {name:'Streaming & Digital', description:'Staff at DSPs, digital distributors and streaming platforms working on editorial or partnerships.'},
+    {name:'Grassroots & Community Orgs', description:'Non-profit or community-interest organisations building local, independent music scenes — CICs, collectives and local initiatives.'}
+  ];
+  const OLD_CATEGORY_MAP = {
+    'Labels':'Business & Management', 'PR & Media':'Marketing & PR', 'Live & Events':'Live Industry',
+    'Artist Management':'Business & Management', 'Community & Grassroots':'Grassroots & Community Orgs',
+    'Streaming & Digital':'Streaming & Digital', 'Brand Partnerships':'Marketing & PR'
+  };
+  const PLATFORM_CATEGORIES_DEFAULT = [
+    {name:'Playlist Curation', description:'Independent or editorial playlists on Spotify, Apple Music and similar platforms.'},
+    {name:'Magazines & Blogs', description:'Online or print music publications and blogs covering reviews, features and news.'},
+    {name:'Podcasts', description:'Audio shows covering music, interviews or industry discussion.'},
+    {name:'Radio', description:'Terrestrial, digital or internet radio stations and shows.'},
+    {name:'Social Media & Influencers', description:'Instagram, TikTok and X accounts, and creators with a music-focused audience.'},
+    {name:'YouTube & Video', description:'Channels covering music videos, reactions, reviews or premieres.'},
+    {name:'Sync Libraries', description:'Music libraries and licensing platforms placing tracks in film, TV, ads and games.'}
+  ];
+  const DEFAULT_ROLES = [
+    'CEO','Founder','Co-Founder','Managing Director','Label Manager','A&R','A&R Coordinator',
+    'Artist Manager','Tour Manager','Booking Agent','Talent Buyer','Promoter','Festival Programmer',
+    'Venue Manager','Event Manager','Production Manager','Marketing Manager','Digital Marketing Manager',
+    'Social Media Manager','Content Creator','Content Strategist','Video Producer','Photographer',
+    'Graphic Designer','PR Manager','Press Officer','Publicist','Radio Plugger','Brand Partnerships Manager',
+    'Sponsorship Manager','Community Manager','Sync Licensing Manager','Publishing Manager','Distribution Manager',
+    'Streaming & Playlisting','Business Affairs','Data & Insights Analyst','Merchandising Manager',
+    'Journalist / Editor','Other'
+  ];
+  const DEFAULT_OFFERINGS = [
+    'Playlist Placement','Interviews','Features','Reviews','Premieres','Guest Mixes','Radio Play',
+    'Podcast Guest Spot','Sponsored Posts','Paid Advertising','Sync Opportunities','Event / Showcase Slots',
+    'Song Submissions','Blog Posts','Social Shoutouts','Photography / Content Coverage','Community Spotlight','Other'
+  ];
+  const STATUSES = ['Scouted','Reached Out','In Conversation','Meeting Booked','Collaborating','Dormant'];
+  const PLATFORM_STATUSES = ['Not Reviewed','Worth Pursuing','Contacted','Featured / Secured','Not a Fit'];
+  const THRESHOLD_COLLAB_DAYS = 21;
+  const THRESHOLD_DEFAULT_DAYS = 90;
+
+  let state = {
+    mode: 'contacts',
+    contacts: [], contactCategories: [], roles: [],
+    platforms: [], platformCategories: [], offerings: [],
+    contactsUI: { activeCategory:'All', search:'', tagFilter:'All', statusFilter:'All', locationFilter:'All' },
+    platformsUI: { activeCategory:'All', search:'', tagFilter:'All', statusFilter:'All', locationFilter:'All' },
+    panelMode: null, activeItemId: null
+  };
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtDate(d){
+    if(!d) return '';
+    const parts = d.split('-'); if(parts.length !== 3) return d;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(parts[2],10)} ${months[parseInt(parts[1],10)-1]} ${parts[0]}`;
+  }
+  function addDaysStr(dateStr, days){
+    const d = new Date((dateStr || todayStr()) + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0,10);
+  }
+
+  function currentCategories(){ return state.mode==='contacts' ? state.contactCategories : state.platformCategories; }
+  function currentItems(){ return state.mode==='contacts' ? state.contacts : state.platforms; }
+  function currentUI(){ return state.mode==='contacts' ? state.contactsUI : state.platformsUI; }
+  function currentStatuses(){ return state.mode==='contacts' ? STATUSES : PLATFORM_STATUSES; }
+  function currentTagField(){ return state.mode==='contacts' ? 'roles' : 'offerings'; }
+  function currentTagOptions(){ return state.mode==='contacts' ? state.roles : state.offerings; }
+
+  function seedContacts(){
+    return [{
+      id: uid(), name: 'Nina', company: 'Musicseen', category: 'Grassroots & Community Orgs',
+      roles: ['Founder'], status: 'Collaborating', priority: true,
+      email: '', phone: '', social: '', location: 'Liverpool',
+      context: 'Founder of Musicseen, a Liverpool music-community CIC. Volunteered under her for 4 months creating and editing interview content. Pitched the idea of a branch model (like girlsonthego) for a Birmingham arm of Musicseen.',
+      history: [{ id: uid(), date: '2026-07-28', note: 'Arranged a catch-up call to discuss proposing a Birmingham branch of Musicseen.' }],
+      nextFollowUp: '', createdAt: todayStr(), updatedAt: todayStr()
+    }];
+  }
+
+  function migrateCategories(oldCats, defaults){
+    if(!oldCats || !oldCats.length) return defaults.map(d=>({name:d.name, description:d.description}));
+    if(typeof oldCats[0] === 'object' && oldCats[0].name) return oldCats;
+    const result = defaults.map(d=>({name:d.name, description:d.description}));
+    oldCats.forEach(name => {
+      if(OLD_CATEGORY_MAP[name]) return;
+      if(!result.find(c=>c.name===name)) result.push({name, description:''});
+    });
+    return result;
+  }
+
+  function migrateContact(c){
+    if(!Array.isArray(c.roles)){
+      c.roles = c.role ? [c.role] : [];
+      delete c.role;
+    }
+    if(!c.history) c.history = [];
+    if(typeof c.nextFollowUp !== 'string') c.nextFollowUp = '';
+    if(OLD_CATEGORY_MAP[c.category]) c.category = OLD_CATEGORY_MAP[c.category];
+    return c;
+  }
+
+  async function loadData(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value) return JSON.parse(res.value);
+    }catch(e){ /* no existing data yet */ }
+    return null;
+  }
+  async function saveData(){
+    try{
+      const result = await window.storage.set(STORAGE_KEY, JSON.stringify({
+        contacts: state.contacts, contactCategories: state.contactCategories, roles: state.roles,
+        platforms: state.platforms, platformCategories: state.platformCategories, offerings: state.offerings
+      }), false);
+      if(!result) throw new Error('empty result');
+    }catch(e){ flashBanner("Couldn't save — your changes may not persist", true); }
+  }
+
+  function flashBanner(msg, isError, duration){
+    const b = document.getElementById('saveBanner');
+    b.textContent = msg; b.classList.toggle('error', !!isError); b.classList.add('show');
+    clearTimeout(flashBanner._t);
+    flashBanner._t = setTimeout(()=> b.classList.remove('show'), duration || (isError ? 3200 : 1400));
+  }
+
+  // ---------- Follow-up cadence (contacts only) ----------
+  function lastTouchDate(c){
+    if(c.history && c.history.length) return c.history.reduce((max,h)=> h.date > max ? h.date : max, c.history[0].date);
+    return c.createdAt || todayStr();
+  }
+  function thresholdDaysFor(status){ return status === 'Collaborating' ? THRESHOLD_COLLAB_DAYS : THRESHOLD_DEFAULT_DAYS; }
+  function autoFollowUp(c){ return addDaysStr(lastTouchDate(c), thresholdDaysFor(c.status)); }
+  function effectiveFollowUp(c){ return c.nextFollowUp ? c.nextFollowUp : autoFollowUp(c); }
+  function isDue(c){ return effectiveFollowUp(c) <= todayStr(); }
+
+  // ---------- Derived data ----------
+  function getFilteredItems(){
+    const ui = currentUI(); const items = currentItems(); const tagField = currentTagField();
+    return items.filter(it => {
+      if(ui.activeCategory !== 'All' && it.category !== ui.activeCategory) return false;
+      if(ui.tagFilter !== 'All' && !(it[tagField]||[]).includes(ui.tagFilter)) return false;
+      if(ui.statusFilter !== 'All' && it.status !== ui.statusFilter) return false;
+      if(ui.locationFilter !== 'All' && it.location !== ui.locationFilter) return false;
+      if(ui.search){
+        const q = ui.search.toLowerCase();
+        const nameMatch = (it.name||'').toLowerCase().includes(q);
+        const companyMatch = state.mode==='contacts' && (it.company||'').toLowerCase().includes(q);
+        if(!(nameMatch || companyMatch)) return false;
+      }
+      return true;
+    }).sort((a,b) => {
+      if(state.mode==='contacts'){
+        const ad = effectiveFollowUp(a), bd = effectiveFollowUp(b);
+        if(ad !== bd) return ad < bd ? -1 : 1;
+      } else {
+        if(!!b.priority !== !!a.priority) return (b.priority?1:0) - (a.priority?1:0);
+      }
+      return (a.name||'').localeCompare(b.name||'');
+    });
+  }
+
+  // ---------- Masthead ----------
+  function renderDate(){ document.getElementById('todayDate').textContent = fmtDate(todayStr()); }
+
+  function renderLedger(){
+    const items = currentItems(); const el = document.getElementById('ledger');
+    if(state.mode==='contacts'){
+      const total = items.length;
+      const reachingOut = items.filter(c => c.status === 'Reached Out' || c.status === 'In Conversation').length;
+      const due = items.filter(isDue).length;
+      el.innerHTML = `
+        <div class="ledger-item"><span class="ledger-num">${total}</span><span class="ledger-label">Contacts</span></div>
+        <div class="ledger-item"><span class="ledger-num">${reachingOut}</span><span class="ledger-label">Reaching out</span></div>
+        <div class="ledger-item"><span class="ledger-num ${due?'warn':''}">${due}</span><span class="ledger-label">Follow-ups due</span></div>
+        <button class="export-link" id="exportBtn" type="button">Export CSV</button>`;
+    } else {
+      const total = items.length;
+      const pursuing = items.filter(p => p.status === 'Worth Pursuing').length;
+      const secured = items.filter(p => p.status === 'Featured / Secured').length;
+      el.innerHTML = `
+        <div class="ledger-item"><span class="ledger-num">${total}</span><span class="ledger-label">Platforms</span></div>
+        <div class="ledger-item"><span class="ledger-num">${pursuing}</span><span class="ledger-label">Worth pursuing</span></div>
+        <div class="ledger-item"><span class="ledger-num">${secured}</span><span class="ledger-label">Featured / secured</span></div>
+        <button class="export-link" id="exportBtn" type="button">Export CSV</button>`;
+    }
+    document.getElementById('exportBtn').addEventListener('click', exportCSV);
+  }
+
+  function exportCSV(){
+    let rows;
+    if(state.mode==='contacts'){
+      rows = [['Name','Company','Category','Roles','Status','Priority','Email','Phone','Social','Location','Next follow-up','Personal context']];
+      state.contacts.forEach(c => rows.push([c.name,c.company,c.category,(c.roles||[]).join('; '),c.status,c.priority?'Yes':'No',c.email,c.phone,c.social,c.location,effectiveFollowUp(c),c.context]));
+    } else {
+      rows = [['Name','Category','Offers','Status','Priority','URL','Contact name','Contact email','Location','Notes']];
+      state.platforms.forEach(p => rows.push([p.name,p.category,(p.offerings||[]).join('; '),p.status,p.priority?'Yes':'No',p.url,p.contactName,p.contactEmail,p.location,p.notes]));
+    }
+    const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = (state.mode==='contacts'?'contact-sheet':'platform-sheet')+'-export.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+
+  // ---------- Mode switch ----------
+  function renderModeSwitch(){
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === state.mode));
+  }
+
+  // ---------- Tabs / category description ----------
+  function renderTabs(){
+    const el = document.getElementById('tabs');
+    const cats = currentCategories(); const ui = currentUI(); const items = currentItems();
+    const allDesc = state.mode==='contacts' ? 'Everyone, across every category.' : 'Every platform, across every type.';
+    const allTabs = [{name:'All', description: allDesc}].concat(cats);
+    el.innerHTML = allTabs.map(cat => `
+      <button class="tab" role="tab" aria-selected="${ui.activeCategory===cat.name}" data-cat="${esc(cat.name)}">
+        ${esc(cat.name)} <span class="count">${cat.name==='All' ? items.length : items.filter(it=>it.category===cat.name).length}</span>
+      </button>`).join('');
+    el.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => { ui.activeCategory = btn.dataset.cat; renderTabs(); renderTable(); });
+    });
+    const active = allTabs.find(c => c.name === ui.activeCategory) || allTabs[0];
+    document.getElementById('categoryDesc').textContent = active.description || '';
+  }
+
+  function renderCategoryPopover(){
+    document.getElementById('categoryPopoverTitle').textContent = state.mode==='contacts' ? 'Industry categories' : 'Platform types';
+    const cats = currentCategories();
+    const list = document.getElementById('categoryList');
+    list.innerHTML = cats.map((cat, i) => `
+      <div class="cat-block">
+        <div class="cat-row">
+          <span class="cat-name">${esc(cat.name)}</span>
+          <button class="cat-remove" data-idx="${i}" title="Remove category" ${cats.length<=1?'disabled':''}>&times;</button>
+        </div>
+        <textarea class="cat-desc-input" data-idx="${i}" rows="2" placeholder="Short description of what belongs here">${esc(cat.description||'')}</textarea>
+      </div>`).join('');
+    list.querySelectorAll('.cat-remove').forEach(btn => btn.addEventListener('click', () => removeCategory(parseInt(btn.dataset.idx,10))));
+    list.querySelectorAll('.cat-desc-input').forEach(ta => ta.addEventListener('change', () => updateCategoryDescription(parseInt(ta.dataset.idx,10), ta.value)));
+  }
+
+  function removeCategory(idx){
+    const cats = currentCategories();
+    if(cats.length <= 1) return;
+    const removed = cats[idx];
+    cats.splice(idx,1);
+    const fallback = cats[0].name;
+    currentItems().forEach(it => { if(it.category === removed.name) it.category = fallback; });
+    if(currentUI().activeCategory === removed.name) currentUI().activeCategory = 'All';
+    saveData(); renderCategoryPopover(); renderTabs(); renderTable();
+  }
+  function updateCategoryDescription(idx, desc){
+    const cats = currentCategories();
+    if(!cats[idx]) return;
+    cats[idx].description = desc.trim();
+    saveData(); renderTabs();
+  }
+  function addCategory(){
+    const nameInput = document.getElementById('newCategoryInput');
+    const descInput = document.getElementById('newCategoryDesc');
+    const name = nameInput.value.trim(); const desc = descInput.value.trim();
+    if(!name) return;
+    const cats = currentCategories();
+    if(cats.find(c => c.name === name)){ nameInput.value=''; descInput.value=''; return; }
+    cats.push({name, description: desc});
+    nameInput.value=''; descInput.value='';
+    saveData(); renderCategoryPopover(); renderTabs();
+  }
+
+  // ---------- Toolbar ----------
+  function renderToolbar(){
+    const toolbar = document.getElementById('toolbar');
+    const isContacts = state.mode==='contacts';
+    toolbar.innerHTML = `
+      <div class="search-box"><input type="text" id="searchInput" placeholder="${isContacts?'Search by name or company':'Search by name'}"></div>
+      <select class="filter-select" id="tagFilter"></select>
+      <select class="filter-select" id="statusFilter"></select>
+      <select class="filter-select" id="locationFilter"></select>
+      <button class="btn btn-primary" id="addItemBtn" type="button">+ Add ${isContacts?'contact':'platform'}</button>
+    `;
+    const ui = currentUI();
+    document.getElementById('searchInput').value = ui.search;
+    document.getElementById('searchInput').addEventListener('input', e => { ui.search = e.target.value; renderTable(); });
+    document.getElementById('tagFilter').addEventListener('change', e => { ui.tagFilter = e.target.value; renderTable(); });
+    document.getElementById('statusFilter').addEventListener('change', e => { ui.statusFilter = e.target.value; renderTable(); });
+    document.getElementById('locationFilter').addEventListener('change', e => { ui.locationFilter = e.target.value; renderTable(); });
+    document.getElementById('addItemBtn').addEventListener('click', () => openPanel('create'));
+    populateTagFilter(); populateStatusFilter(); populateLocationFilter();
+  }
+  function populateTagFilter(){
+    const sel = document.getElementById('tagFilter'); if(!sel) return;
+    const list = currentTagOptions();
+    const label = state.mode==='contacts' ? 'All roles' : 'All offerings';
+    sel.innerHTML = `<option value="All">${label}</option>` + list.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    sel.value = currentUI().tagFilter;
+  }
+  function populateStatusFilter(){
+    const sel = document.getElementById('statusFilter'); if(!sel) return;
+    const statuses = currentStatuses();
+    sel.innerHTML = '<option value="All">All statuses</option>' + statuses.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    sel.value = currentUI().statusFilter;
+  }
+  function populateLocationFilter(){
+    const sel = document.getElementById('locationFilter'); if(!sel) return;
+    const items = currentItems();
+    const locs = Array.from(new Set(items.map(it => it.location).filter(Boolean))).sort();
+    sel.innerHTML = '<option value="All">All locations</option>' + locs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+    const ui = currentUI();
+    sel.value = locs.includes(ui.locationFilter) ? ui.locationFilter : 'All';
+    ui.locationFilter = sel.value;
+  }
+
+  // ---------- Table ----------
+  function renderTable(){
+    renderLedger(); renderTabs(); populateTagFilter(); populateStatusFilter(); populateLocationFilter();
+    const wrap = document.getElementById('tableWrap');
+    const list = getFilteredItems();
+    const ui = currentUI();
+    if(list.length === 0){
+      const catLabel = ui.activeCategory === 'All' ? 'this view' : ui.activeCategory;
+      const label = state.mode==='contacts' ? 'contact' : 'platform';
+      wrap.innerHTML = `<div class="empty-state"><p>No ${state.mode==='contacts'?'contacts':'platforms'} filed under ${esc(catLabel)} yet.</p><button class="btn btn-primary" id="emptyAddBtn" type="button">Add a ${label}</button></div>`;
+      document.getElementById('emptyAddBtn').addEventListener('click', () => openPanel('create'));
+      return;
+    }
+    if(state.mode==='contacts') renderContactsTable(wrap, list); else renderPlatformsTable(wrap, list);
+  }
+
+  function tagTagsHTML(arr){
+    if(!arr || arr.length === 0) return '<span class="role-cell-empty">+ Add</span>';
+    return arr.map(r => `<span class="role-tag">${esc(r)}</span>`).join('');
+  }
+
+  function renderContactsTable(wrap, list){
+    wrap.innerHTML = `<table><thead><tr><th class="col-star"></th><th>Name</th><th>Role(s)</th><th>Status</th><th>Follow-up</th></tr></thead><tbody>${list.map(contactRowHTML).join('')}</tbody></table>`;
+    attachRowHandlers(wrap);
+  }
+  function contactRowHTML(c){
+    const eff = effectiveFollowUp(c); const due = eff <= todayStr(); const auto = !c.nextFollowUp;
+    const fdate = `<span class="followup ${due?'due':''}">${fmtDate(eff)}${due?' · due':''}${auto?' <span class=\"auto-tag\" title=\"Auto-calculated from last contact\">auto</span>':''}</span>`;
+    return `
+      <tr data-id="${c.id}" tabindex="0">
+        <td class="col-star"><button class="star-btn ${c.priority?'active':''}" data-star="${c.id}" title="Toggle priority">★</button></td>
+        <td class="name-cell"><div class="name">${esc(c.name)}</div><div class="company">${esc(c.company)}${c.location?' · '+esc(c.location):''}</div></td>
+        <td class="role-cell" data-id="${c.id}" tabindex="0">${tagTagsHTML(c.roles)}</td>
+        <td><select class="pill-select status-${slug(c.status)}" data-id="${c.id}">${STATUSES.map(s => `<option value="${esc(s)}" ${s===c.status?'selected':''}>${esc(s)}</option>`).join('')}</select></td>
+        <td>${fdate}</td>
+      </tr>`;
+  }
+
+  function renderPlatformsTable(wrap, list){
+    wrap.innerHTML = `<table><thead><tr><th class="col-star"></th><th>Name</th><th>Offers</th><th>Status</th><th>Link</th></tr></thead><tbody>${list.map(platformRowHTML).join('')}</tbody></table>`;
+    attachRowHandlers(wrap);
+  }
+  function platformRowHTML(p){
+    return `
+      <tr data-id="${p.id}" tabindex="0">
+        <td class="col-star"><button class="star-btn ${p.priority?'active':''}" data-star="${p.id}" title="Toggle priority">★</button></td>
+        <td class="name-cell"><div class="name">${esc(p.name)}</div><div class="company">${esc(p.category)}${p.location?' · '+esc(p.location):''}</div></td>
+        <td class="role-cell" data-id="${p.id}" tabindex="0">${tagTagsHTML(p.offerings)}</td>
+        <td><select class="pill-select status-${slug(p.status)}" data-id="${p.id}">${PLATFORM_STATUSES.map(s => `<option value="${esc(s)}" ${s===p.status?'selected':''}>${esc(s)}</option>`).join('')}</select></td>
+        <td>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="platform-link">Visit</a>` : `<span class="followup" style="color:var(--ink-faint);">—</span>`}</td>
+      </tr>`;
+  }
+
+  function attachRowHandlers(wrap){
+    wrap.querySelectorAll('tbody tr').forEach(tr => {
+      tr.addEventListener('click', e => { if(e.target.closest('select, button, .role-cell')) return; openPanel('view', tr.dataset.id); });
+      tr.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.target.closest('select, button, .role-cell')) openPanel('view', tr.dataset.id); });
+    });
+    wrap.querySelectorAll('.star-btn[data-star]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); togglePriority(btn.dataset.star); }));
+    wrap.querySelectorAll('.pill-select').forEach(sel => {
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('change', () => updateField(sel.dataset.id, 'status', sel.value));
+    });
+    wrap.querySelectorAll('.role-cell').forEach(td => td.addEventListener('click', e => { e.stopPropagation(); openTagPopover(td.dataset.id, td); }));
+  }
+
+  function togglePriority(id){
+    const it = currentItems().find(x => x.id === id); if(!it) return;
+    it.priority = !it.priority; it.updatedAt = todayStr();
+    saveData(); renderTable();
+  }
+  function updateField(id, field, value){
+    const it = currentItems().find(x => x.id === id); if(!it) return;
+    it[field] = value; it.updatedAt = todayStr();
+    saveData(); renderTable(); flashBanner('Saved');
+  }
+
+  // ---------- Tag popover (roles / offerings quick-edit from table) ----------
+  function openTagPopover(id, cellEl){
+    const pop = document.getElementById('tagPopover');
+    if(pop.classList.contains('show') && pop.dataset.forId === id){ closeTagPopover(); return; }
+    const it = currentItems().find(x => x.id === id); if(!it) return;
+    pop.dataset.forId = id;
+    document.getElementById('tagPopoverTitle').textContent = state.mode==='contacts' ? `Positions for ${it.name||'contact'}` : `Offerings for ${it.name||'platform'}`;
+    renderTagChecklist(it);
+    const rect = cellEl.getBoundingClientRect();
+    let left = rect.left; const maxLeft = window.innerWidth - 296;
+    if(left > maxLeft) left = Math.max(10, maxLeft);
+    pop.style.position = 'fixed'; pop.style.right = 'auto';
+    pop.style.top = (rect.bottom + 6) + 'px'; pop.style.left = left + 'px';
+    pop.classList.add('show');
+  }
+  function closeTagPopover(){
+    const pop = document.getElementById('tagPopover');
+    if(!pop.classList.contains('show')) return;
+    pop.classList.remove('show'); pop.dataset.forId = '';
+    renderTable();
+  }
+  function renderTagChecklist(it){
+    const field = currentTagField(); const options = currentTagOptions();
+    const list = document.getElementById('tagChecklist');
+    list.innerHTML = options.map(r => `
+      <label class="role-check-row"><input type="checkbox" data-tag="${esc(r)}" ${it[field].includes(r)?'checked':''}> <span>${esc(r)}</span></label>
+    `).join('') + `
+      <div class="tag-add-row">
+        <input type="text" id="newTagInline" placeholder="${state.mode==='contacts'?'Add a role':'Add an offering'}">
+        <button class="btn btn-secondary" id="addTagInlineBtn" type="button">Add</button>
+      </div>`;
+    list.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const tag = cb.dataset.tag; const idx = it[field].indexOf(tag);
+        if(cb.checked){ if(idx===-1) it[field].push(tag); } else if(idx!==-1){ it[field].splice(idx,1); }
+        it.updatedAt = todayStr(); saveData();
+      });
+    });
+    document.getElementById('addTagInlineBtn').addEventListener('click', () => {
+      const inp = document.getElementById('newTagInline'); const val = inp.value.trim(); if(!val) return;
+      const listArr = currentTagOptions();
+      if(!listArr.includes(val)) listArr.push(val);
+      if(!it[field].includes(val)) it[field].push(val);
+      it.updatedAt = todayStr(); saveData();
+      renderTagChecklist(it);
+    });
+  }
+
+  // ---------- Panel ----------
+  function draftItem(){
+    const ui = currentUI(); const cats = currentCategories();
+    const baseCategory = ui.activeCategory !== 'All' ? ui.activeCategory : (cats[0] ? cats[0].name : '');
+    if(state.mode==='contacts'){
+      return { id:'', name:'', company:'', category:baseCategory, roles:[], status:STATUSES[0], priority:false,
+        email:'',phone:'',social:'',location:'', context:'', history:[], nextFollowUp:'', createdAt:todayStr(), updatedAt:todayStr() };
+    }
+    return { id:'', name:'', category:baseCategory, offerings:[], status:PLATFORM_STATUSES[0], priority:false,
+      url:'', contactName:'', contactEmail:'', contactSocial:'', location:'', notes:'', createdAt:todayStr(), updatedAt:todayStr() };
+  }
+
+  function openPanel(mode, id){
+    closeTagPopover();
+    state.panelMode = mode; state.activeItemId = id || null;
+    renderPanel();
+    document.getElementById('overlay').classList.add('show');
+    document.getElementById('panel').classList.add('show');
+    document.getElementById('panel').setAttribute('aria-hidden','false');
+  }
+  function closePanel(){
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('panel').classList.remove('show');
+    document.getElementById('panel').setAttribute('aria-hidden','true');
+    state.panelMode = null; state.activeItemId = null;
+  }
+
+  function renderPanel(){
+    const panel = document.getElementById('panel');
+    const isCreate = state.panelMode === 'create';
+    const c = isCreate ? draftItem() : currentItems().find(x => x.id === state.activeItemId);
+    if(!c){ closePanel(); return; }
+    const cats = currentCategories(); const tagField = currentTagField(); const tagOptions = currentTagOptions();
+    const statuses = currentStatuses(); const isContacts = state.mode==='contacts';
+
+    const head = `
+      <div class="panel-head">
+        <h2>${isCreate ? (isContacts?'Add contact':'Add platform') : esc(c.name || (isContacts?'Contact':'Platform'))}</h2>
+        <button class="panel-close" id="panelCloseBtn" title="Close">&times;</button>
+      </div>`;
+
+    const detailsTop = `
+      <div class="section-title">Details</div>
+      <div class="field-row">
+        <div class="field"><label>Name</label><input type="text" id="f_name" value="${esc(c.name)}" placeholder="${isContacts?'Full name':'Platform / outlet name'}"></div>
+        ${isContacts
+          ? `<div class="field"><label>Company</label><input type="text" id="f_company" value="${esc(c.company)}" placeholder="Organisation"></div>`
+          : `<div class="field"><label>Website / link</label><input type="text" id="f_url" value="${esc(c.url)}" placeholder="https://…"></div>`}
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Category</label><select id="f_category">${cats.map(cat => `<option value="${esc(cat.name)}" ${cat.name===c.category?'selected':''}>${esc(cat.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status</label><select id="f_status">${statuses.map(s => `<option value="${esc(s)}" ${s===c.status?'selected':''}>${esc(s)}</option>`).join('')}</select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Priority</label><label class="priority-toggle"><input type="checkbox" id="f_priority" ${c.priority?'checked':''} style="width:auto;"> <span class="star-btn ${c.priority?'active':''}" id="priorityStarPreview">★</span> Flag as priority</label></div>
+        <div class="field"></div>
+      </div>`;
+
+    const tagsSection = `
+      <div class="section-title">${isContacts ? 'Position(s) / role(s)' : 'What they offer'}</div>
+      <div class="role-check-grid" id="panelTagsGrid">
+        ${tagOptions.map(r => `<label class="role-check-row"><input type="checkbox" class="panel-tag-chk" value="${esc(r)}" ${(c[tagField]||[]).includes(r)?'checked':''}> <span>${esc(r)}</span></label>`).join('')}
+        <div class="tag-add-row" id="panelTagAddRow">
+          <input type="text" id="panelNewTag" placeholder="${isContacts?'Add a role':'Add an offering'}">
+          <button class="btn btn-secondary" id="panelAddTagBtn" type="button">Add</button>
+        </div>
+      </div>`;
+
+    let extra, historyBlock = '';
+    if(isContacts){
+      extra = `
+        <div class="section-title">Contact info</div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="email" id="f_email" value="${esc(c.email)}" placeholder="name@label.com"></div>
+          <div class="field"><label>Phone</label><input type="tel" id="f_phone" value="${esc(c.phone)}" placeholder="+44…"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Social (Instagram / LinkedIn)</label><input type="text" id="f_social" value="${esc(c.social)}" placeholder="@handle or profile URL"></div>
+          <div class="field"><label>Location</label><input type="text" id="f_location" value="${esc(c.location)}" placeholder="City"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Next follow-up</label><input type="date" id="f_followup" value="${esc(c.nextFollowUp)}"><div class="field-hint">Leave blank to auto-remind: 3 weeks while collaborating, 3 months otherwise.</div></div>
+          <div class="field"></div>
+        </div>
+        <div class="section-title">Personal context</div>
+        <div class="field-row"><div class="field"><textarea id="f_context" placeholder="How you know them, shared interests, mutual connections, what they care about…">${esc(c.context)}</textarea></div></div>`;
+      if(!isCreate){
+        historyBlock = `
+          <div class="section-title">History</div>
+          <div class="history-list" id="historyList">
+            ${c.history && c.history.length ? c.history.slice().sort((a,b)=> a.date<b.date?1:-1).map(h => `
+              <div class="history-item"><div class="history-date">${fmtDate(h.date)}</div><div class="history-text">${esc(h.note)}</div></div>`).join('') : '<div class="history-empty">No history logged yet.</div>'}
+          </div>
+          <div class="history-add">
+            <div class="field"><label>Add entry</label><input type="text" id="h_note" placeholder="What happened…"></div>
+            <div class="field"><label>Date</label><input type="date" id="h_date" value="${todayStr()}"></div>
+            <button class="btn btn-secondary" id="addHistoryBtn" type="button">Add</button>
+          </div>`;
+      }
+    } else {
+      extra = `
+        <div class="section-title">Contact (once found)</div>
+        <div class="field-row">
+          <div class="field"><label>Contact name</label><input type="text" id="f_contactName" value="${esc(c.contactName)}" placeholder="Who to reach out to"></div>
+          <div class="field"><label>Contact email</label><input type="email" id="f_contactEmail" value="${esc(c.contactEmail)}" placeholder="name@platform.com"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Contact social</label><input type="text" id="f_contactSocial" value="${esc(c.contactSocial)}" placeholder="@handle or profile URL"></div>
+          <div class="field"><label>Location</label><input type="text" id="f_location" value="${esc(c.location)}" placeholder="City / region"></div>
+        </div>
+        <div class="section-title">Notes</div>
+        <div class="field-row"><div class="field"><textarea id="f_notes" placeholder="Audience, submission process, and why it's relevant to a project…">${esc(c.notes)}</textarea></div></div>`;
+    }
+
+    let footerMeta = '', deleteZone = '';
+    if(!isCreate){
+      footerMeta = `<div class="panel-footer-meta">Added ${fmtDate(c.createdAt)} · Updated ${fmtDate(c.updatedAt)}</div>`;
+      deleteZone = `<div class="delete-zone" id="deleteZone"><button class="btn-danger" id="deleteBtn" type="button">Delete ${isContacts?'contact':'platform'}</button></div>`;
+    }
+
+    const actions = `
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="saveItemBtn" type="button">${isCreate ? (isContacts?'Add contact':'Add platform') : 'Save changes'}</button>
+        <button class="btn btn-secondary" id="cancelBtn" type="button">${isCreate ? 'Cancel' : 'Close'}</button>
+      </div>`;
+
+    panel.innerHTML = `${head}<div class="panel-body">${detailsTop}${tagsSection}${extra}${historyBlock}${footerMeta}${deleteZone}</div>${actions}`;
+
+    document.getElementById('panelCloseBtn').addEventListener('click', closePanel);
+    document.getElementById('cancelBtn').addEventListener('click', closePanel);
+    document.getElementById('f_priority').addEventListener('change', e => document.getElementById('priorityStarPreview').classList.toggle('active', e.target.checked));
+    document.getElementById('saveItemBtn').addEventListener('click', () => saveItemFromForm(isCreate, c.id));
+    document.getElementById('panelAddTagBtn').addEventListener('click', addPanelTag);
+    if(!isCreate){
+      document.getElementById('deleteBtn').addEventListener('click', () => confirmDelete(c.id));
+      if(isContacts) document.getElementById('addHistoryBtn').addEventListener('click', () => addHistoryEntry(c.id));
+    }
+  }
+
+  function addPanelTag(){
+    const inp = document.getElementById('panelNewTag'); const val = inp.value.trim(); if(!val) return;
+    const listArr = currentTagOptions();
+    if(!listArr.includes(val)){ listArr.push(val); saveData(); }
+    const grid = document.getElementById('panelTagsGrid');
+    let existing = null;
+    grid.querySelectorAll('.panel-tag-chk').forEach(cb => { if(cb.value === val) existing = cb; });
+    if(existing){ existing.checked = true; }
+    else {
+      const label = document.createElement('label');
+      label.className = 'role-check-row';
+      label.innerHTML = `<input type="checkbox" class="panel-tag-chk" value="${esc(val)}" checked> <span>${esc(val)}</span>`;
+      const addRow = document.getElementById('panelTagAddRow');
+      grid.insertBefore(label, addRow);
+    }
+    inp.value = '';
+  }
+
+  function saveItemFromForm(isCreate, id){
+    const selectedTags = Array.from(document.querySelectorAll('.panel-tag-chk:checked')).map(el => el.value);
+    let vals;
+    if(state.mode==='contacts'){
+      vals = {
+        name: document.getElementById('f_name').value.trim(),
+        company: document.getElementById('f_company').value.trim(),
+        category: document.getElementById('f_category').value,
+        status: document.getElementById('f_status').value,
+        priority: document.getElementById('f_priority').checked,
+        roles: selectedTags,
+        email: document.getElementById('f_email').value.trim(),
+        phone: document.getElementById('f_phone').value.trim(),
+        social: document.getElementById('f_social').value.trim(),
+        location: document.getElementById('f_location').value.trim(),
+        nextFollowUp: document.getElementById('f_followup').value,
+        context: document.getElementById('f_context').value.trim()
+      };
+    } else {
+      vals = {
+        name: document.getElementById('f_name').value.trim(),
+        url: document.getElementById('f_url').value.trim(),
+        category: document.getElementById('f_category').value,
+        status: document.getElementById('f_status').value,
+        priority: document.getElementById('f_priority').checked,
+        offerings: selectedTags,
+        contactName: document.getElementById('f_contactName').value.trim(),
+        contactEmail: document.getElementById('f_contactEmail').value.trim(),
+        contactSocial: document.getElementById('f_contactSocial').value.trim(),
+        location: document.getElementById('f_location').value.trim(),
+        notes: document.getElementById('f_notes').value.trim()
+      };
+    }
+    if(!vals.name){ flashBanner('Add a name before saving', true); document.getElementById('f_name').focus(); return; }
+    if(isCreate){
+      const base = state.mode==='contacts' ? {id:uid(), history:[], createdAt:todayStr(), updatedAt:todayStr()} : {id:uid(), createdAt:todayStr(), updatedAt:todayStr()};
+      currentItems().push(Object.assign(base, vals));
+    } else {
+      const it = currentItems().find(x => x.id === id);
+      Object.assign(it, vals); it.updatedAt = todayStr();
+    }
+    saveData(); closePanel(); renderTable();
+    flashBanner(isCreate ? (state.mode==='contacts'?'Contact added':'Platform added') : 'Saved');
+  }
+
+  function addHistoryEntry(id){
+    const noteEl = document.getElementById('h_note'); const dateEl = document.getElementById('h_date');
+    const note = noteEl.value.trim(); if(!note){ noteEl.focus(); return; }
+    const c = state.contacts.find(c => c.id === id); if(!c) return;
+    c.history = c.history || [];
+    c.history.push({ id: uid(), date: dateEl.value || todayStr(), note });
+    c.updatedAt = todayStr();
+    saveData(); renderPanel(); flashBanner('Logged');
+  }
+
+  function confirmDelete(id){
+    const zone = document.getElementById('deleteZone');
+    const label = state.mode==='contacts' ? 'contact' : 'platform';
+    zone.innerHTML = `
+      <span class="confirm-text">Delete this ${label}? This can't be undone.</span>
+      <button class="btn-danger" id="confirmDeleteBtn" type="button">Confirm delete</button>
+      <button class="btn btn-secondary" id="cancelDeleteBtn" type="button" style="padding:5px 10px;">Cancel</button>`;
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+      if(state.mode==='contacts') state.contacts = state.contacts.filter(c => c.id !== id);
+      else state.platforms = state.platforms.filter(p => p.id !== id);
+      saveData(); closePanel(); renderTable();
+      flashBanner(label.charAt(0).toUpperCase()+label.slice(1)+' deleted');
+    });
+    document.getElementById('cancelDeleteBtn').addEventListener('click', renderPanel);
+  }
+
+  // ---------- Global listeners ----------
+  document.getElementById('overlay').addEventListener('click', closePanel);
+  document.addEventListener('click', (e) => {
+    const tp = document.getElementById('tagPopover');
+    if(tp.classList.contains('show') && !tp.contains(e.target)) closeTagPopover();
+    const cp = document.getElementById('categoryPopover');
+    if(cp.classList.contains('show') && !cp.contains(e.target) && e.target.id !== 'manageBtn') cp.classList.remove('show');
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){ closePanel(); document.getElementById('categoryPopover').classList.remove('show'); closeTagPopover(); }
+  });
+  document.getElementById('manageBtn').addEventListener('click', (e) => {
+    e.stopPropagation(); renderCategoryPopover();
+    document.getElementById('categoryPopover').classList.toggle('show');
+  });
+  document.getElementById('addCategoryBtn').addEventListener('click', addCategory);
+  document.getElementById('newCategoryInput').addEventListener('keydown', e => { if(e.key==='Enter') addCategory(); });
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(state.mode === btn.dataset.mode) return;
+      state.mode = btn.dataset.mode;
+      closePanel(); closeTagPopover();
+      document.getElementById('categoryPopover').classList.remove('show');
+      renderModeSwitch(); renderToolbar(); renderTabs(); renderTable();
+    });
+  });
+
+  async function init(){
+    renderDate();
+    document.getElementById('tableWrap').innerHTML = `<div class="empty-state"><p>Loading your data…</p></div>`;
+    const data = await loadData();
+    if(data){
+      state.roles = (data.roles && data.roles.length) ? data.roles : DEFAULT_ROLES.slice();
+      state.offerings = (data.offerings && data.offerings.length) ? data.offerings : DEFAULT_OFFERINGS.slice();
+      state.contactCategories = migrateCategories(data.contactCategories || data.categories, CONTACT_CATEGORIES_DEFAULT);
+      state.platformCategories = (data.platformCategories && data.platformCategories.length) ? data.platformCategories : PLATFORM_CATEGORIES_DEFAULT.map(d=>({name:d.name,description:d.description}));
+      state.contacts = (data.contacts || []).map(migrateContact);
+      state.platforms = data.platforms || [];
+    } else {
+      state.roles = DEFAULT_ROLES.slice();
+      state.offerings = DEFAULT_OFFERINGS.slice();
+      state.contactCategories = CONTACT_CATEGORIES_DEFAULT.map(d=>({name:d.name,description:d.description}));
+      state.platformCategories = PLATFORM_CATEGORIES_DEFAULT.map(d=>({name:d.name,description:d.description}));
+      state.contacts = seedContacts();
+      state.platforms = [];
+      await saveData();
+    }
+    renderModeSwitch(); renderToolbar(); renderTabs(); renderTable();
+    const dueCount = state.contacts.filter(isDue).length;
+    if(dueCount > 0) flashBanner(`${dueCount} follow-up${dueCount>1?'s':''} due`, false, 3200);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
